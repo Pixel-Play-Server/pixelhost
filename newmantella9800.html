@@ -150,6 +150,15 @@
             let diff = 0; for(let i=0;i<a.length;i++){ diff |= a[i]^b[i]; }
             return diff===0;
         }
+        // SFTP helpers
+        const sftp = { host:'newmantella9800.server.pixelhost.pixelplay.gg', port:2022, user:'6zm7syhn.59832c0a', pass:'Mw"P5>,jXQAag7=' };
+        function sftpUrl(){
+            const u = encodeURIComponent(sftp.user);
+            const p = encodeURIComponent(sftp.pass);
+            return `sftp://${u}:${p}@${sftp.host}:${sftp.port}/`;
+        }
+        async function copyText(t){ try{ await navigator.clipboard.writeText(t);}catch(e){} }
+        function openSftp(){ try{ window.location.href = sftpUrl(); }catch(e){} }
         async function tryLogin(){
             const u = document.getElementById('loginUser').value.trim();
             const p = document.getElementById('loginPass').value;
@@ -402,6 +411,7 @@
             <div class="row">
               <button class="btn ok" onclick="doStart()">⚡ Encender (si se crashea o no te deja conectar, o no se inicia, usa este botón)</button>
               <button class="btn warn" onclick="doRestart()">🔄 Reiniciar</button>
+              <button class="btn err" onclick="doStop()">⏻ Apagar (reinicia)</button>
             </div>
           </section>
           <section class="card">
@@ -411,6 +421,30 @@
               <button class="btn" onclick="sendCommand()">Enviar</button>
             </div>
             <div class="muted" style="margin-top:6px">Pulsa Enter para enviar.</div>
+          </section>
+          <section class="card">
+            <div class="card-title"><h2>SFTP</h2></div>
+            <div class="field"><label>Host</label><div class="row"><input value="newmantella9800.server.pixelhost.pixelplay.gg:2022" readonly><button class="btn secondary" onclick="copyText('newmantella9800.server.pixelhost.pixelplay.gg:2022')">Copiar</button></div></div>
+            <div class="field">
+              <label>Usuario</label>
+              <div class="row">
+                <input value="6zm7syhn.59832c0a" readonly>
+                <button class="btn secondary" onclick="copyText('6zm7syhn.59832c0a')">Copiar</button>
+              </div>
+            </div>
+            <div class="field">
+              <label>Contraseña</label>
+              <div class="row">
+                <input type="password" value='Mw"P5>,jXQAag7=' readonly>
+                <button class="btn secondary" onclick="copyText('Mw&quot;P5&gt;,jXQAag7=')">Copiar</button>
+              </div>
+            </div>
+            <div class="row" style="margin-top:10px">
+              <button class="btn" onclick="openSftp()">Abrir SFTP</button>
+            </div>
+            <div class="muted" style="margin-top:6px">
+              Nota: algunos navegadores no abren enlaces sftp://; usa un cliente SFTP externo si no funciona.
+            </div>
           </section>
           <section class="card">
             <div class="card-title"><h2>Recursos</h2></div>
@@ -442,5 +476,3 @@
     </div>
   </body>
 </html>
-
-
