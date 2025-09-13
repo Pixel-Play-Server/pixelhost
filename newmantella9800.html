@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PixelPlay · Panel</title>
+    <style>
+        :root{
+            --bg1:#122e20; --bg2:#0c1220; --panel:#0d1710; --border:#1e3b24; --muted:#94a3b8; --txt:#e6edf3;
+            --grad1:#ffffff; --grad2:#00a545; --ok:#10b981; --warn:#f59e0b; --err:#ef4444;
+        }
+        *{box-sizing:border-box}
+        body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;margin:0;color:var(--txt);
+             background:radial-gradient(1200px 800px at 10% -10%, rgba(124,58,237,.25) 0%, transparent 60%),
+                        radial-gradient(1000px 700px at 100% 0%, rgba(37,99,235,.25) 0%, transparent 60%),
+                        linear-gradient(180deg, var(--bg2), var(--bg1));}
+        header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;position:sticky;top:0;backdrop-filter:saturate(150%) blur(6px);
+               background:linear-gradient(180deg, rgba(13,17,23,.9), rgba(13,17,23,.6));border-bottom:1px solid var(--border);z-index:10}
+        .brand{display:flex;align-items:center;gap:10px}
+        .logo{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--grad1),var(--grad2));box-shadow:0 6px 24px rgba(124,58,237,.35)}
+        h1{font-size:18px;margin:0;background:linear-gradient(135deg,var(--grad1),var(--grad2));-webkit-background-clip:text;background-clip:text;color:transparent}
+        .status-pill{padding:6px 10px;border-radius:999px;font-size:12px;border:1px solid var(--border);background:rgba(148,163,184,.08)}
+        .status-running{background:rgba(16,185,129,.12);border-color:rgba(16,185,129,.35)}
+        .status-stopped{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.35)}
+        .container{max-width:1200px;margin:0 auto;padding:16px}
+        main{display:grid;grid-template-columns:1fr 360px;gap:16px}
+        .card{background:rgba(13,17,23,.7);border:1px solid var(--border);border-radius:14px;padding:14px;box-shadow:0 10px 30px rgba(2,6,23,.3);backdrop-filter:blur(8px)}
+        .card-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+        .card-title h2{margin:0;font-size:14px;color:var(--muted);font-weight:600}
+        .actions{display:flex;gap:8px}
+        .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(135deg,var(--grad1),var(--grad2));
+             color:white;border:0;border-radius:10px;padding:10px 12px;font-weight:600;cursor:pointer;transition:transform .05s ease}
+        .btn:active{transform:translateY(1px)}
+        .btn.secondary{background:rgba(148,163,184,.12);color:#d1d5db;border:1px solid var(--border)}
+        .btn.ok{background:linear-gradient(135deg,#12b981,#059669)}
+        .btn.warn{background:linear-gradient(135deg,#f59e0b,#d97706)}
+        .btn.err{background:linear-gradient(135deg,#ef4444,#dc2626)}
+        .row{display:flex;gap:10px}
+        label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
+        input,textarea{width:100%;background:rgba(2,6,23,.6);border:1px solid var(--border);border-radius:10px;color:var(--txt);padding:10px}
+        input::placeholder{color:#6b7280}
+        #logs{height:64vh;overflow:auto;font-family:ui-monospace,Consolas,monospace;font-size:12px;line-height:1.5;
+              background:repeating-linear-gradient(180deg,rgba(148,163,184,.04),rgba(148,163,184,.04) 28px,transparent 28px,transparent 56px);
+              border-radius:10px;border:1px dashed rgba(148,163,184,.2);padding:10px}
+        .log-line{padding:4px 6px;border-radius:6px}
+        .log-info{color:#e5e7eb}
+        .log-warn{color:#fde68a}
+        .log-error{color:#fecaca}
+        .toolbar{display:flex;gap:8px}
+        .muted{color:var(--muted)}
+        .metric{display:flex;align-items:center;justify-content:space-between;margin-top:6px}
+        .bar{height:10px;background:rgba(148,163,184,.15);border:1px solid var(--border);border-radius:999px;overflow:hidden}
+        .bar > .fill{height:100%;width:0;background:linear-gradient(90deg,var(--grad1),var(--grad2));transition:width .3s}
+        footer{color:#94a3b8;text-align:center;padding:14px}
+        @media (max-width: 980px){ main{grid-template-columns:1fr} .container{padding:12px} }
+    </style>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+        body{font-family:'Poppins',ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif}
+        header{padding:22px 28px;background:linear-gradient(180deg, rgba(13,17,23,.95), rgba(13,17,23,.65));}
+        h1{font-size:26px;font-weight:700;letter-spacing:.2px}
+        .container{max-width:1180px}
+        main{gap:20px}
+        .card{border-radius:16px;background:rgba(13,17,23,.72);border:1px solid rgba(148,163,184,.18);box-shadow:0 10px 30px rgba(2,6,23,.35)}
+        .card-title h2{font-size:15px;color:#cbd5e1}
+        .btn{border-radius:999px;padding:12px 16px;box-shadow:0 6px 18px rgba(37,99,235,.25)}
+        .btn.secondary{box-shadow:none}
+        .btn.ok{box-shadow:0 6px 18px rgba(16,185,129,.25)}
+        .btn.warn{box-shadow:0 6px 18px rgba(245,158,11,.25)}
+        .btn.err{box-shadow:0 6px 18px rgba(239,68,68,.25)}
+        #logs{background:repeating-linear-gradient(180deg,rgba(148,163,184,.05),rgba(148,163,184,.05) 26px,transparent 26px,transparent 52px);border:1px dashed rgba(148,163,184,.22)}
+        .status-pill{font-weight:600}
+        .bar{border-radius:999px}
+    </style>
+    <style>
+        :root {
+            --bg-color: #101c14;
+            --surface-color: rgba(18, 32, 24, 0.80);
+            --surface-color-hover: rgba(28, 48, 36, 0.85);
+            --glass-surface: rgba(18, 32, 24, 0.55);
+            --primary-color: #2ecc71;
+            --primary-color-light: #4be08c;
+            --text-color: #e1f7e6;
+            --text-color-secondary: #a8c8b3;
+            --stroke-color: rgba(46, 204, 113, 0.22);
+            --highlight-color: rgba(46, 204, 113, 0.10);
+            --border-radius: 12px;
+        }
+        body{background-color:var(--bg-color);color:var(--text-color);position:relative;min-height:100vh;overflow-x:hidden}
+        body::before{
+            content:'';position:fixed;inset:0;z-index:-1;opacity:.3;filter:blur(120px);
+            background:radial-gradient(circle at 15% 25%, var(--primary-color-light) 0%, transparent 22%),
+                       radial-gradient(circle at 85% 75%, #2752c1 0%, transparent 26%);
+            animation:animate-glow 15s ease-in-out infinite;
+        }
+        @keyframes animate-glow{0%{transform:rotate(0deg) scale(1)}50%{transform:rotate(180deg) scale(1.2)}100%{transform:rotate(360deg) scale(1)}}
+        header{background:linear-gradient(180deg, var(--surface-color), rgba(18,32,24,0.65));border-bottom:1px solid var(--stroke-color)}
+        .card{background:var(--glass-surface);border:1px solid var(--stroke-color);border-radius:var(--border-radius)}
+        .card-title h2{color:var(--text-color-secondary)}
+        .btn{background:linear-gradient(90deg, var(--primary-color) 0%, var(--primary-color-light) 100%)}
+        .btn.secondary{background:var(--surface-color);color:var(--text-color)}
+        .btn.ok{background:linear-gradient(90deg, var(--primary-color) 0%, var(--primary-color-light) 100%)}
+        .btn.warn{background:linear-gradient(90deg,#f59e0b,#fbbf24)}
+        .btn.err{background:linear-gradient(90deg,#ef4444,#f87171)}
+        .status-pill{color:var(--text-color)}
+        .status-running{background:var(--highlight-color);border-color:var(--stroke-color);color:var(--primary-color)}
+        .status-stopped{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.35)}
+        #logs{border:1px solid var(--stroke-color)}
+    </style>
+    <style>
+        /* Login overlay */
+        .login-overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.45);backdrop-filter:blur(10px);z-index:50}
+        .login-card{width:100%;max-width:380px;background:var(--glass-surface);border:1px solid var(--stroke-color);border-radius:var(--border-radius);padding:22px;color:var(--text-color)}
+        .login-title{font-size:20px;font-weight:700;margin-bottom:12px;color:var(--primary-color-light);text-align:center}
+        .login-desc{font-size:13px;color:var(--text-color-secondary);text-align:center;margin-bottom:16px}
+        .field{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+        .field label{font-size:12px;color:var(--text-color-secondary)}
+        .field input{background:var(--surface-color);border:1px solid var(--stroke-color);border-radius:10px;color:var(--text-color);padding:10px}
+        .login-actions{display:flex;gap:10px;margin-top:8px}
+        .btn-full{width:100%;display:inline-flex;align-items:center;justify-content:center;border:0;color:#fff;border-radius:10px;padding:10px 12px;background:linear-gradient(90deg, var(--primary-color) 0%, var(--primary-color-light) 100%)}
+        .login-error{color:#fecaca;font-size:12px;margin-top:8px;min-height:16px;text-align:center}
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const settings = {
+            supabaseUrl: 'https://rkllpdexwngpjnkujrji.supabase.co',
+            supabaseAnon: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrbGxwZGV4d25ncGpua3VqcmppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc3NjM0ODEsImV4cCI6MjA3MzMzOTQ4MX0.1YkjH9Oprnz3CkZCQpp5tov9HMdcLeK3qGsuK-JSdV0',
+            discordWebhook: 'https://discord.com/api/webhooks/1416401102387150868/GAGRLBTVT8YGxvgFSc9--gptdfOZx3lQorU6hDTQLJOrXFZ5xwFQ0kkhgdKsajnUD7oV'
+        };
+        function escapeHTML(s){
+            return s.replace(/[&<>\"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+        }
+        function classify(line){
+            const t = line.toLowerCase();
+            if(t.includes('severe')||t.includes('error')||t.includes('exception')) return 'log-error';
+            if(t.includes('warn')) return 'log-warn';
+            return 'log-info';
+        }
+        // ==== Auth helpers (PBKDF2) ====
+        const b64ToBytes = (b64)=> Uint8Array.from(atob(b64), c=>c.charCodeAt(0));
+        const bytesToB64 = (bytes)=> btoa(String.fromCharCode(...new Uint8Array(bytes)));
+        async function derivePbkdf2(password, saltBytes, iterations, length=32){
+            const enc = new TextEncoder();
+            const key = await crypto.subtle.importKey('raw', enc.encode(password), {name:'PBKDF2'}, false, ['deriveBits']);
+            const bits = await crypto.subtle.deriveBits({name:'PBKDF2', hash:'SHA-256', salt:saltBytes, iterations}, key, length*8);
+            return new Uint8Array(bits);
+        }
+        function equalConstTime(a, b){
+            if(a.length !== b.length) return false;
+            let diff = 0; for(let i=0;i<a.length;i++){ diff |= a[i]^b[i]; }
+            return diff===0;
+        }
+        async function tryLogin(){
+            const u = document.getElementById('loginUser').value.trim();
+            const p = document.getElementById('loginPass').value;
+            const err = document.getElementById('loginError');
+            err.textContent = '';
+            if(!u || !p){ err.textContent = 'Completa usuario y contraseña'; return; }
+            try{
+                const url = `${settings.supabaseUrl}/rest/v1/panel_users?select=username,salt,hash,iterations&username=eq.${encodeURIComponent(u)}&limit=1`;
+                const r = await fetch(url,{headers:{apikey:settings.supabaseAnon,Authorization:`Bearer ${settings.supabaseAnon}`}});
+                const arr = await r.json();
+                if(!arr || !arr[0]){ err.textContent='Usuario o contraseña incorrectos'; return; }
+                const row = arr[0];
+                const saltBytes = b64ToBytes(row.salt);
+                const want = b64ToBytes(row.hash);
+                const iter = Number(row.iterations||210000);
+                const got = await derivePbkdf2(p, saltBytes, iter, want.length);
+                if(!equalConstTime(got, want)){ err.textContent='Usuario o contraseña incorrectos'; return; }
+                localStorage.setItem('panel_session_ok','1');
+                localStorage.setItem('panel_session_user', u);
+                hideLogin();
+                initPanel();
+            }catch(e){ err.textContent = 'Error de autenticación'; }
+        }
+        function showLogin(){
+            const ov = document.getElementById('loginOverlay');
+            ov.style.display = 'flex';
+            const hdr = document.querySelector('header');
+            const cont = document.querySelector('.container');
+            if(hdr) hdr.style.display='none';
+            if(cont) cont.style.display='none';
+        }
+        function hideLogin(){
+            const ov = document.getElementById('loginOverlay');
+            ov.style.display = 'none';
+            const hdr = document.querySelector('header');
+            const cont = document.querySelector('.container');
+            if(hdr) hdr.style.display='flex';
+            if(cont) cont.style.display='block';
+        }
+        function connectSSE(){
+            const logs = document.getElementById('logs');
+            logs.innerHTML = '';
+            connectSupabaseLogs();
+        }
+        async function refreshStatus(){
+            try{
+                let status = 'unknown';
+                const r = await fetch(`${settings.supabaseUrl}/rest/v1/panel_status?id=eq.1&select=status`,{
+                    headers:{apikey:settings.supabaseAnon,Authorization:`Bearer ${settings.supabaseAnon}`}
+                });
+                const arr = await r.json();
+                if(arr && arr[0] && arr[0].status) status = arr[0].status;
+                const el = document.getElementById('status');
+                el.textContent = status === 'running' ? 'En línea' : 'Apagado';
+                el.className = 'status-pill ' + (status === 'running' ? 'status-running' : 'status-stopped');
+            }catch(e){}
+        }
+        async function sendCommand(){
+            const cmd = document.getElementById('command').value.trim();
+            if(!cmd) return;
+            document.getElementById('command').value='';
+            await fetch(`${settings.supabaseUrl}/rest/v1/panel_commands`,{
+                method:'POST',
+                headers:{'Content-Type':'application/json',apikey:settings.supabaseAnon,Authorization:`Bearer ${settings.supabaseAnon}`,Prefer:'return=minimal'},
+                body: JSON.stringify([{cmd, processed:false}])
+            });
+        }
+        async function sendSupabaseCommand(cmd){
+            return fetch(`${settings.supabaseUrl}/rest/v1/panel_commands`,{
+                method:'POST',
+                headers:{'Content-Type':'application/json',apikey:settings.supabaseAnon,Authorization:`Bearer ${settings.supabaseAnon}`,Prefer:'return=minimal'},
+                body: JSON.stringify([{cmd, processed:false}])
+            });
+        }
+
+        async function clearLogs(){
+            try{
+                await fetch(`${settings.supabaseUrl}/rest/v1/panel_logs?id=gt.0`,{
+                    method:'DELETE',
+                    headers:{apikey:settings.supabaseAnon,Authorization:`Bearer ${settings.supabaseAnon}`,Prefer:'return=minimal'}
+                });
+            }catch(e){}
+            // limpiar UI
+            const logs = document.getElementById('logs');
+            if (logs) logs.innerHTML = '';
+            lastLogId = 0;
+        }
+        async function doStop(){ await clearLogs(); await sendSupabaseCommand('stop'); }
+        async function doRestart(){ await clearLogs(); await sendSupabaseCommand('restart'); }
+        async function doStart(){
+            try{
+                await fetch('https://discord.com/api/webhooks/1416401102387150868/GAGRLBTVT8YGxvgFSc9--gptdfOZx3lQorU6hDTQLJOrXFZ5xwFQ0kkhgdKsajnUD7oV',{
+                    method:'POST',
+                    headers:{'Content-Type':'application/json'},
+                    body: JSON.stringify({ content: 'Solicitud de ENCENDIDO del servidor Newmantella9800 @<733078928423387178>. ve a https://panel.velocityhosting.co.uk/server/59832c0a/console y prendelo' })
+                });
+                alert('Solicitud de encendido enviada, espere a que el servidor se encienda.');
+            }catch(e){ alert('No se pudo enviar la solicitud.'); }
+        }
+        async function sendSupabaseCommand(cmd){
+            return fetch(`${settings.supabaseUrl}/rest/v1/panel_commands`,{
+                method:'POST',
+                headers:{'Content-Type':'application/json',apikey:settings.supabaseAnon,Authorization:`Bearer ${settings.supabaseAnon}`,Prefer:'return=minimal'},
+                body: JSON.stringify([{cmd, processed:false}])
+            });
+        }
+        async function refreshRam(){
+            try{
+                let used=0, max=1;
+                const r = await fetch(`${settings.supabaseUrl}/rest/v1/panel_metrics?id=eq.1`,{
+                    headers:{apikey:settings.supabaseAnon,Authorization:`Bearer ${settings.supabaseAnon}`}
+                });
+                const arr = await r.json();
+                if(arr && arr[0]){ used = Number(arr[0].ramUsed||0); max = Number(arr[0].ramMax||1); }
+                const pct = Math.round((used/max)*100);
+                document.getElementById('ramUsed').textContent = (used/1024/1024).toFixed(0)+' MB';
+                document.getElementById('ramMax').textContent = (max/1024/1024/1024).toFixed(1)+' GB';
+                document.getElementById('ramPct').textContent = pct+'%';
+                document.querySelector('.bar .fill').style.width = pct+'%';
+            }catch(e){}
+        }
+        let lastLogId = 0;
+        async function connectSupabaseLogs(){
+            try{
+                const r = await fetch(`${settings.supabaseUrl}/rest/v1/panel_logs?select=id,line&order=id.desc&limit=2000`,{
+                    headers:{apikey:settings.supabaseAnon,Authorization:`Bearer ${settings.supabaseAnon}`}
+                });
+                const arr = await r.json();
+                const logs = document.getElementById('logs');
+                arr.reverse().forEach(row=>{
+                    const line = row.line;
+                    const div = document.createElement('div');
+                    div.className = 'log-line ' + classify(line);
+                    div.innerHTML = escapeHTML(line);
+                    logs.appendChild(div);
+                    lastLogId = Math.max(lastLogId, Number(row.id||0));
+                });
+                logs.scrollTop = logs.scrollHeight;
+            }catch(e){}
+            setInterval(pollSupabaseLogs, 1000);
+        }
+        async function pollSupabaseLogs(){
+            try{
+                const r = await fetch(`${settings.supabaseUrl}/rest/v1/panel_logs?select=id,line&order=id.asc&id=gt.${lastLogId}&limit=200`,{
+                    headers:{apikey:settings.supabaseAnon,Authorization:`Bearer ${settings.supabaseAnon}`}
+                });
+                const arr = await r.json();
+                const logs = document.getElementById('logs');
+                arr.forEach(row=>{
+                    const line = row.line;
+                    const div = document.createElement('div');
+                    div.className = 'log-line ' + classify(line);
+                    div.innerHTML = escapeHTML(line);
+                    logs.appendChild(div);
+                    lastLogId = Math.max(lastLogId, Number(row.id||0));
+                });
+                if(arr.length>0) logs.scrollTop = logs.scrollHeight;
+            }catch(e){}
+        }
+
+        // Realtime via Supabase (push casi inmediato)
+        function startRealtime(){
+            try{
+                if(!window.supabase) return;
+                const client = window.supabase.createClient(settings.supabaseUrl, settings.supabaseAnon);
+                client.channel('realtime:panel_logs')
+                    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'panel_logs' }, (payload)=>{
+                        const logs = document.getElementById('logs');
+                        const line = (payload && payload.new && payload.new.line) ? payload.new.line : '';
+                        const div = document.createElement('div');
+                        div.className = 'log-line ' + classify(line);
+                        div.innerHTML = escapeHTML(line);
+                        logs.appendChild(div);
+                        logs.scrollTop = logs.scrollHeight;
+                        if (payload && payload.new && payload.new.id) {
+                            lastLogId = Math.max(lastLogId, Number(payload.new.id));
+                        }
+                        // activity heartbeat
+                        if (window._status) { window._status.lastLogMs = Date.now(); window._status.stoppedPatched = false; }
+                    })
+                    .subscribe();
+            }catch(e){}
+        }
+        function initPanel(){
+            connectSSE();
+            refreshStatus();
+            refreshRam();
+            setInterval(refreshStatus, 1000);
+            setInterval(refreshRam, 1000);
+            startRealtime();
+            window._status = { lastLogMs: Date.now(), stoppedPatched: false };
+            setInterval(async ()=>{
+                try{
+                    const now = Date.now();
+                    const last = (window._status && window._status.lastLogMs) ? window._status.lastLogMs : 0;
+                    if (now - last > 5000 && !window._status.stoppedPatched){
+                        // patch stopped in Supabase and update UI
+                        await fetch(`${settings.supabaseUrl}/rest/v1/panel_status?id=eq.1`,{
+                            method:'PATCH',
+                            headers:{'Content-Type':'application/json',apikey:settings.supabaseAnon,Authorization:`Bearer ${settings.supabaseAnon}`,Prefer:'return=minimal'},
+                            body: JSON.stringify({status:'stopped'})
+                        });
+                        const el = document.getElementById('status');
+                        if (el){ el.textContent = 'Apagado'; el.className = 'status-pill status-stopped'; }
+                        window._status.stoppedPatched = true;
+                    }
+                }catch(e){}
+            }, 1000);
+            document.getElementById('command').addEventListener('keydown', (ev)=>{
+                if(ev.key==='Enter') sendCommand();
+            });
+            document.getElementById('btn-clear')?.addEventListener('click', ()=>{
+                document.getElementById('logs').innerHTML='';
+            });
+            document.getElementById('btn-copy')?.addEventListener('click', async ()=>{
+                const lines=[...document.querySelectorAll('.log-line')].map(n=>n.textContent).join('\n');
+                try{ await navigator.clipboard.writeText(lines);}catch(e){}
+            });
+        }
+        window.addEventListener('DOMContentLoaded',()=>{
+            if(localStorage.getItem('panel_session_ok')==='1'){ hideLogin(); initPanel(); }
+            else{ showLogin(); }
+            document.getElementById('btnLogin').addEventListener('click', tryLogin);
+            document.getElementById('loginPass').addEventListener('keydown', (e)=>{ if(e.key==='Enter') tryLogin(); });
+        });
+    </script>
+  </head>
+  <body>
+    <header>
+      <div class="brand">
+        <h1>PixelPlay · Panel</h1>
+      </div>
+      <span id="status" class="status-pill">...</span>
+    </header>
+    <div class="container">
+      <main>
+        <section class="card">
+          <div class="card-title">
+            <h2>Consola en vivo</h2>
+            <div class="toolbar">
+              <button id="btn-clear" class="btn secondary" title="Limpiar">🧹 Limpiar</button>
+              <button id="btn-copy" class="btn secondary" title="Copiar">📋 Copiar</button>
+            </div>
+          </div>
+          <div id="logs"></div>
+        </section>
+        <aside id="sidebar" class="side">
+          <section class="card">
+            <div class="card-title"><h2>Controles</h2></div>
+            <div class="row">
+              <button class="btn ok" onclick="doStart()">⚡ Encender (si se crashea o no te deja conectar, o no se inicia, usa este botón)</button>
+              <button class="btn warn" onclick="doRestart()">🔄 Reiniciar</button>
+            </div>
+          </section>
+          <section class="card">
+            <div class="card-title"><h2>Comandos</h2></div>
+            <div class="row">
+              <input id="command" placeholder="p. ej. say Hola PixelPlay">
+              <button class="btn" onclick="sendCommand()">Enviar</button>
+            </div>
+            <div class="muted" style="margin-top:6px">Pulsa Enter para enviar.</div>
+          </section>
+          <section class="card">
+            <div class="card-title"><h2>Recursos</h2></div>
+            <div class="metric">
+              <div class="muted">RAM</div>
+              <div class="ram"><span id="ramUsed">0</span> / <span id="ramMax">5.0 GB</span> (<span id="ramPct">0%</span>)</div>
+            </div>
+            <div class="bar" style="margin-top:8px"><div class="fill"></div></div>
+          </section>
+        </aside>
+      </main>
+      <footer>Hecho con ❤️ por PixelPlay</footer>
+    </div>
+    <div id="loginOverlay" class="login-overlay" style="display:none">
+      <div class="login-card">
+        <div class="login-title">Inicia sesión</div>
+        <div class="login-desc">Usa tu cuenta registrada</div>
+        <div class="field">
+          <label>Usuario</label>
+          <input id="loginUser" placeholder="tu-usuario">
+        </div>
+        <div class="field">
+          <label>Contraseña</label>
+          <input id="loginPass" type="password" placeholder="••••••••">
+        </div>
+        <button id="btnLogin" class="btn-full">Entrar</button>
+        <div id="loginError" class="login-error"></div>
+      </div>
+    </div>
+  </body>
+</html>
+
+
